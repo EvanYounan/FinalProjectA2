@@ -122,6 +122,12 @@ public class ImageNodeHandler implements Serializable {
 //		System.out.println(removedTags);
 	}
 	
+	public void renameFile(String oldPath, String newPath) {
+		File oldFile = new File(oldPath);
+		File newFile = new File(newPath);
+		oldFile.renameTo(newFile);
+	}
+	
 	public ArrayList<ImageNode> toTopToBottomArray(ImageNode imgN) {
 		ArrayList<ImageNode> temp = new ArrayList<ImageNode>();
 		imgN = imgN.findRoot(imgN);

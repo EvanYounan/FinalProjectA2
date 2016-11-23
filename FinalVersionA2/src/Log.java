@@ -20,6 +20,11 @@ public class Log implements Serializable {
 		return this.description;
 	}
 	
+	public boolean equals(Log otherLog) {
+		return (this.timeOfEvent.equals(otherLog.timeOfEvent)
+				&& this.description.equals(otherLog.description));
+	}
+	
 	public String toString() {
 		return "Status: " + this.description + ", at: " + 
 				this.timeOfEvent.toString(); 

@@ -65,7 +65,10 @@ public class SomeGUI {
 		frame.getContentPane().setLayout(null);
 		
 		JPanel panel = new JPanel();
-		panel.setBounds(0, 0, 772, 321);
+		panel.setBounds(0, 0, 952, 304);
+		
+		JLabel lblHighlightAPath = new JLabel("Highlight a path and click Retrieve File to use Add Tag and Remove Tag operations.");
+		panel.add(lblHighlightAPath);
 		JTextArea display = new JTextArea(16,58);
 		display.setEditable(false);
 		JScrollPane scroller = new JScrollPane(display);
@@ -246,11 +249,23 @@ public class SomeGUI {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagName = textFieldfromAll.getText().trim();
+				ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
 				Tag tempTag = new Tag(newTagName);
 				inh.addTagToAll(tempTag);
 				list.setListData(inh.getExistingTags().toArray());
 				display.setText(getAllImages());
+//				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 				
+				tempNode = tempNode.findChild(tempNode);
+				retrievedTextField.setText(tempNode.getPathName());
+				
+				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+				for (ImageNode imgN : topToBottom) {
+					logsTopToBottom.add(imgN.getLog());
+				}
+				
+				lst2.setListData(logsTopToBottom.toArray());
 			}
 		});
 
@@ -262,12 +277,25 @@ public class SomeGUI {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagName = textFieldfromAll.getText().trim();
+				ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
 				Tag tempTag = new Tag(newTagName);
 				System.out.println("Before removing all: " + inh.getExistingTags());
 				inh.removeTagFromAll(tempTag);
 				list.setListData(inh.getExistingTags().toArray());
 				System.out.println("After removing all of the files: " + inh.getExistingTags());
 				display.setText(getAllImages());
+				
+				
+				tempNode = tempNode.findChild(tempNode);
+				retrievedTextField.setText(tempNode.getPathName());
+				
+				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+				for (ImageNode imgN : topToBottom) {
+					logsTopToBottom.add(imgN.getLog());
+				}
+				
+				lst2.setListData(logsTopToBottom.toArray());
 			}
 		});
 
@@ -279,20 +307,145 @@ public class SomeGUI {
 		frame.getContentPane().add(lblNewLabel_1);
 		
 		JButton btnNewButton_6 = new JButton("Add Chosen Tag to retrieved file");
+		btnNewButton_6.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag newTag = (Tag) list.getSelectedValue();
+//					Tag tempTag = new Tag(newTagName);
+					
+					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+					
+					if (!retrievedTextField.getText().isEmpty()) { 
+						if (tempNode.findChild(tempNode) != null) {
+							inh.addTag(tempNode.findChild(tempNode), newTag);
+						}
+					}
+					
+					list.setListData(inh.getExistingTags().toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					display.setText(getAllImages());
+					
+					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
+					
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+					
+					lst2.setListData(logsTopToBottom.toArray());
+				}
+				
+			}
+		});
 		
 		btnNewButton_6.setBounds(310, 347, 279, 23);
 		frame.getContentPane().add(btnNewButton_6);
 		
 		JButton btnNewButton_7 = new JButton("Remove chosen Tag from retrieved file");
+		btnNewButton_7.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag tagToRemove = (Tag)list.getSelectedValue();
+					
+					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+					if (!retrievedTextField.getText().isEmpty()) { 
+						inh.removeTag(tempNode.findChild(tempNode), tagToRemove);
+					}
+					list.setListData(inh.getExistingTags().toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+//					ArrayList<Tag> someExistingTags = inh.getExistingTags();
+//					list.setListData(someExistingTags.toArray());
+					display.setText(getAllImages());
+					
+					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
+					
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+					
+					lst2.setListData(logsTopToBottom.toArray());
+				}
+				
+			}
+		});
 
 		btnNewButton_7.setBounds(310, 381, 279, 23);
 		frame.getContentPane().add(btnNewButton_7);
 		
 		JButton btnAddTagTo = new JButton("Add Tag to all files");
+		btnAddTagTo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag newTag = (Tag) list.getSelectedValue();
+//					Tag tempTag = new Tag(newTagName);
+					
+					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+					
+					if (!retrievedTextField.getText().isEmpty()) { 
+						if (tempNode.findChild(tempNode) != null) {
+							inh.addTagToAll(newTag);
+						}
+					}
+					
+					list.setListData(inh.getExistingTags().toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					display.setText(getAllImages());
+					
+					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
+					
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+					
+					lst2.setListData(logsTopToBottom.toArray());
+				}
+				
+			}
+		});
 		btnAddTagTo.setBounds(310, 418, 279, 23);
 		frame.getContentPane().add(btnAddTagTo);
 		
 		JButton btnNewButton_8 = new JButton("Remove Tag from all files");
+		btnNewButton_8.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag newTag = (Tag) list.getSelectedValue();
+//					Tag tempTag = new Tag(newTagName);
+					
+					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+					
+					if (!retrievedTextField.getText().isEmpty()) { 
+						if (tempNode.findChild(tempNode) != null) {
+							inh.removeTagFromAll(newTag);
+						}
+					}
+					
+					list.setListData(inh.getExistingTags().toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					display.setText(getAllImages());
+					
+					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
+					
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+					
+					lst2.setListData(logsTopToBottom.toArray());
+				}
+				
+			}
+		});
 		btnNewButton_8.setBounds(310, 452, 279, 23);
 		frame.getContentPane().add(btnNewButton_8);
 		
@@ -303,6 +456,43 @@ public class SomeGUI {
 		frame.getContentPane().add(lblNewLabel_2);
 		
 		JButton revertButton = new JButton("Revert");
+		revertButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				Log chosenLog = (Log) lst2.getSelectedValue();
+				ImageNode temp = inh.findImageNode(retrievedTextField.getText().toString());
+				String oldPath = retrievedTextField.getText().toString();
+				temp = temp.findRoot(temp);
+				
+				boolean condition = false;
+				while (condition == false) {
+					if (temp.getLog().equals(chosenLog)) {
+						if (!(temp.getChild() == null)) {
+							temp.getChild().setParent(null);
+						}
+						temp.setChild(null);
+						condition = true;
+					} else {
+						temp = temp.getChild();
+					}
+				}
+				retrievedTextField.setText(temp.findChild(temp).getPathName());
+				inh.renameFile(oldPath, temp.getPathName());
+				display.setText(getAllImages());
+				
+				temp = temp.findRoot(temp);
+				
+				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+				for (ImageNode imgN : topToBottom) {
+					logsTopToBottom.add(imgN.getLog());
+				}
+				inh.updateExisting();
+				list.setListData(inh.getExistingTags().toArray());
+				lst2.setListData(logsTopToBottom.toArray());
+				
+			}
+		});
 
 		revertButton.setBounds(790, 498, 87, 23);
 		frame.getContentPane().add(revertButton);
