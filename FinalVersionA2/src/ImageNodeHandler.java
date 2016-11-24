@@ -48,12 +48,20 @@ public class ImageNodeHandler implements Serializable {
 	
 	public void addTag(ImageNode img, Tag tag) {
 		ImageNode someChild = new ImageNode();
+		ImageNode tempChildOfWhole = img.findChild(img);
 		
-		someChild.setParent(img);
-		img.setChild(someChild);
-		someChild.tags = img.getTags();
+		someChild.setParent(tempChildOfWhole);
+		tempChildOfWhole.setChild(someChild);
 		someChild.setID(img.getID());
+		
+		for (Tag t : tempChildOfWhole.getTags()) {
+			someChild.addTag(t);
+		}
 		someChild.addTag(tag);
+		
+//		for (ImageNode tempImg : toTopToBottomArray(img)) {
+//			System.out.println(tempImg.getTags());
+//		}
 		
 		if (!tagInExisting(tag)) {
 			addTagToExisting(tag);

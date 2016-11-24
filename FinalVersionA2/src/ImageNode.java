@@ -36,6 +36,10 @@ public class ImageNode extends FileNode {
 		tags.add(tag);
 	}
 	
+	public void addTags(ArrayList<Tag> tags) {
+		tags.addAll(tags);
+	}
+	
 	public void removeTag(Tag tag) {
 		for (Tag t : tags) {
 			if (tag.equals(t)) {
@@ -174,7 +178,7 @@ public class ImageNode extends FileNode {
 
 	@Override
 	public String toString() {
-		return "ImageNode [path=" + this.getName() + ", name= " + this.getPathName() + "]";
+		return "ImageNode [path=" + this.getPathName() + ", name= " + this.getName() + "]";
 	}
 	
 }

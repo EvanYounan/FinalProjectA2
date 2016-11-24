@@ -488,6 +488,7 @@ public class SomeGUI {
 					logsTopToBottom.add(imgN.getLog());
 				}
 				inh.updateExisting();
+				System.out.println(inh.getExistingTags());
 				list.setListData(inh.getExistingTags().toArray());
 				lst2.setListData(logsTopToBottom.toArray());
 				
