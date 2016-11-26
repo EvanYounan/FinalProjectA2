@@ -132,6 +132,8 @@ public class SomeGUI {
 				listOfImages.setListData(inh.getImages().toArray());
 				ArrayList<Tag> someExistingTags = inh.getExistingTags();
 				list.setListData(someExistingTags.toArray());
+			} else {
+				inh = new ImageNodeHandler();
 			}
 		}
 		
@@ -139,7 +141,7 @@ public class SomeGUI {
 		//DO SOMETHING BEFORE CLOSING THE PROGRAM
 		frame.addWindowListener(new WindowAdapter() {
 		    public void windowClosing(WindowEvent e) {
-		        if (inh.getImages() != null && !inh.getImages().isEmpty()) {
+		        if (inh.getImages() != null) {
 		        	ser.Serialize(inh);
 		        	System.out.println("System has saved all images and is closing...");
 		        } else {

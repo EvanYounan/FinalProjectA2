@@ -193,8 +193,7 @@ public class ImageNode extends FileNode {
 
 	@Override
 	public String toString() {
-		return "ImageNode [path=" + this.findChild(this).getPathName() + 
-				", name= " + this.findChild(this).getName() + "]";
+		return "ImageNode [name= " + this.findChild(this).getName() + "]";
 	}
 	
 }
