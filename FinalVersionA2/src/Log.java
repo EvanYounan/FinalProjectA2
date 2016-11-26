@@ -16,6 +16,15 @@ public class Log implements Serializable {
 		return this.timeOfEvent;
 	}
 	
+	public boolean laterThan(Date date) {
+		return this.timeOfEvent.after(date);
+	}
+	
+	//Newly added 
+	public boolean earlierThan(Date date) {
+		return this.timeOfEvent.before(date);
+	}
+	
 	public String getStatus() {
 		return this.description;
 	}

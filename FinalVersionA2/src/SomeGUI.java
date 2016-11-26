@@ -19,6 +19,8 @@ import java.awt.event.WindowAdapter;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 
 public class SomeGUI {
 
@@ -60,25 +62,53 @@ public class SomeGUI {
 	 */
 	private void initialize() {
 		frame = new JFrame("Photo Renamer");
-		frame.setBounds(100, 100, 968, 699);
+		frame.setBounds(100, 100, 968, 717);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
 		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout());
 		panel.setBounds(0, 0, 952, 304);
 		
-		JLabel lblHighlightAPath = new JLabel("Highlight a path and click Retrieve File to use Add Tag and Remove Tag operations.");
-		panel.add(lblHighlightAPath);
-		JTextArea display = new JTextArea(16,58);
-		display.setEditable(false);
-		JScrollPane scroller = new JScrollPane(display);
+		JLabel statusLabel = new JLabel("Status bar:");
+		statusLabel.setBounds(10, 653, 808, 14);
+		frame.getContentPane().add(statusLabel);
+		
+	
+//		JTextArea display = new JTextArea(16,58);
+		JList listOfImages = new JList();
+		listOfImages.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: All of the images loaded into the program. Highlight "
+						+ " a path and click Retrieve File to begin performing operation to the"
+						+ " image.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
+//		display.setEditable(false);
+		JScrollPane scroller = new JScrollPane(listOfImages);
 		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		panel.add(scroller);
 		frame.getContentPane().add(panel);
 		
 		JPanel panel_1 = new JPanel();
+		panel_1.setLayout(new GridLayout());
 		panel_1.setBounds(10, 347, 290, 166);
 		JList list = new JList();
+		list.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: The current tags being used in the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
 		list.setBounds(10, 347, 290, 166);
 		JScrollPane scroll = new JScrollPane(list);
 		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -93,22 +123,29 @@ public class SomeGUI {
 		JScrollPane scroll2 = new JScrollPane(lst2);
 		scroll2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		panel_2.add(scroll2);
+		panel_2.setLayout(new GridLayout());
 		frame.getContentPane().add(panel_2);
 		
 		if (f.exists()) {
 			if (f.length() > 0) {
 				inh = ser.Deserialize();
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				ArrayList<Tag> someExistingTags = inh.getExistingTags();
 				list.setListData(someExistingTags.toArray());
 			}
 		}
 		
+		
 		//DO SOMETHING BEFORE CLOSING THE PROGRAM
 		frame.addWindowListener(new WindowAdapter() {
 		    public void windowClosing(WindowEvent e) {
-		        ser.Serialize(inh);
-		        System.out.println("System is closing now...");
+		        if (inh.getImages() != null && !inh.getImages().isEmpty()) {
+		        	ser.Serialize(inh);
+		        	System.out.println("System has saved all images and is closing...");
+		        } else {
+		        	System.out.println("There was nothing to save since no images were loaded in."
+		        			+ " Closing now...");
+		        }
 		    }
 		});
 		
@@ -120,7 +157,7 @@ public class SomeGUI {
 				ArrayList<File> tempFiles = ld.showFileChooserAndReturnFiles();
 				File f = new File("src/imageNodeHandlerInformation.ser");
 				if (f.exists()) {
-					if (f.length() > 0 || display.getText().length() > 0) {
+					if (f.length() > 0 || listOfImages.getModel().getSize() > 0) {
 						inh.addImageNodes(ld.convertToImageNodes(tempFiles));
 					} else {
 						inh = new ImageNodeHandler(ld.convertToImageNodes(tempFiles));
@@ -128,8 +165,17 @@ public class SomeGUI {
 				}
 				ArrayList<Tag> someExistingTags = inh.getExistingTags();
 				list.setListData(someExistingTags.toArray());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				statusLabel.setText("Status bar: Choose a directory to load all"
+						+ " of the images in that directory into the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		btnNewButton.setBounds(10, 626, 932, 23);
@@ -145,6 +191,16 @@ public class SomeGUI {
 		frame.getContentPane().add(btnNewButton_2);
 		
 		retrievedTextField = new JTextField();
+		retrievedTextField.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: The path of the current file being operated on.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
 		retrievedTextField.setBounds(171, 527, 418, 20);
 		frame.getContentPane().add(retrievedTextField);
 		retrievedTextField.setColumns(10);
@@ -154,11 +210,10 @@ public class SomeGUI {
 		btnNewButton_3.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (display.getSelectedText() != null) {
-					tempPathToParent = display.getSelectedText();
-					String somePath = display.getSelectedText();
-					retrievedTextField.setText(somePath);
-					ImageNode temp = inh.findImageNode(somePath);
+				if (listOfImages.getSelectedValue() != null) {
+//					tempPathToParent = display.getSelectedText();
+					ImageNode temp = (ImageNode) listOfImages.getSelectedValue();
+					retrievedTextField.setText(temp.findChild(temp).getPathName());
 					
 					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
 					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
@@ -168,6 +223,15 @@ public class SomeGUI {
 					
 					lst2.setListData(logsTopToBottom.toArray());
 				}
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: After highlighting one image's path from above, click"
+						+ " this button to perform some operations on the image.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		//addTag
@@ -187,7 +251,7 @@ public class SomeGUI {
 				
 				list.setListData(inh.getExistingTags().toArray());
 				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				
 				ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 				
@@ -199,6 +263,15 @@ public class SomeGUI {
 				
 				lst2.setListData(logsTopToBottom.toArray());
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: This button allows you to add a tag with"
+						+ " the name inside the box to the retrieved file above.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		
@@ -215,7 +288,7 @@ public class SomeGUI {
 				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 //				ArrayList<Tag> someExistingTags = inh.getExistingTags();
 //				list.setListData(someExistingTags.toArray());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				
 				ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 				
@@ -228,18 +301,49 @@ public class SomeGUI {
 				lst2.setListData(logsTopToBottom.toArray());
 				
 			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: This button allows you to remove a tag from"
+						+ " the retrieved file above.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
 		});
 		
 		btnNewButton_3.setBounds(10, 524, 151, 23);
 		frame.getContentPane().add(btnNewButton_3);
 		
 		textField = new JTextField();
+		textField.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Type the name of the tag you would like to remove "
+						+ "or add to the retrieved file above.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
 		textField.setBounds(227, 559, 207, 20);
 		textField.setEditable(true);
 		frame.getContentPane().add(textField);
 		textField.setColumns(10);
 		
 		textFieldfromAll = new JTextField();
+		textFieldfromAll.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Type the name of the tag you would like to remove "
+						+ "or add to ALL files in the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
 		textFieldfromAll.setBounds(310, 593, 207, 20);
 		frame.getContentPane().add(textFieldfromAll);
 		textFieldfromAll.setColumns(10);
@@ -253,7 +357,7 @@ public class SomeGUI {
 				Tag tempTag = new Tag(newTagName);
 				inh.addTagToAll(tempTag);
 				list.setListData(inh.getExistingTags().toArray());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 //				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 				
 				tempNode = tempNode.findChild(tempNode);
@@ -266,6 +370,15 @@ public class SomeGUI {
 				}
 				
 				lst2.setListData(logsTopToBottom.toArray());
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: This button allows you to add a tag with the"
+						+ " name inside the box to all files loaded into the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 
@@ -283,7 +396,7 @@ public class SomeGUI {
 				inh.removeTagFromAll(tempTag);
 				list.setListData(inh.getExistingTags().toArray());
 				System.out.println("After removing all of the files: " + inh.getExistingTags());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				
 				
 				tempNode = tempNode.findChild(tempNode);
@@ -296,6 +409,15 @@ public class SomeGUI {
 				}
 				
 				lst2.setListData(logsTopToBottom.toArray());
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: This button allows you to remove a tag with the"
+						+ " name inside the box from all images loaded into the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 
@@ -324,7 +446,7 @@ public class SomeGUI {
 					
 					list.setListData(inh.getExistingTags().toArray());
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
-					display.setText(getAllImages());
+					listOfImages.setListData(inh.getImages().toArray());
 					
 					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 					
@@ -337,6 +459,15 @@ public class SomeGUI {
 					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Select a tag from the Existing Tags and click"
+						+ " this button to add the tag to the current retrieved file.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		
@@ -358,7 +489,7 @@ public class SomeGUI {
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 //					ArrayList<Tag> someExistingTags = inh.getExistingTags();
 //					list.setListData(someExistingTags.toArray());
-					display.setText(getAllImages());
+					listOfImages.setListData(inh.getImages().toArray());
 					
 					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 					
@@ -371,6 +502,15 @@ public class SomeGUI {
 					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Select a tag from the Existing Tags and click "
+						+ "this button to remove this tag from the retrieved file.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 
@@ -395,7 +535,7 @@ public class SomeGUI {
 					
 					list.setListData(inh.getExistingTags().toArray());
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
-					display.setText(getAllImages());
+					listOfImages.setListData(inh.getImages().toArray());
 					
 					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 					
@@ -408,6 +548,15 @@ public class SomeGUI {
 					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Select a tag from the Existing Tags and click"
+						+ " this button to add the tag to ALL files loaded into the program.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		btnAddTagTo.setBounds(310, 418, 279, 23);
@@ -431,7 +580,7 @@ public class SomeGUI {
 					
 					list.setListData(inh.getExistingTags().toArray());
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
-					display.setText(getAllImages());
+					listOfImages.setListData(inh.getImages().toArray());
 					
 					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
 					
@@ -444,6 +593,15 @@ public class SomeGUI {
 					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Select a tag from the Existing Tags and click"
+						+ " this button to remove this tag from ALL files loaded into the system.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
 			}
 		});
 		btnNewButton_8.setBounds(310, 452, 279, 23);
@@ -478,7 +636,7 @@ public class SomeGUI {
 				}
 				retrievedTextField.setText(temp.findChild(temp).getPathName());
 				inh.renameFile(oldPath, temp.getPathName());
-				display.setText(getAllImages());
+				listOfImages.setListData(inh.getImages().toArray());
 				
 				temp = temp.findRoot(temp);
 				
@@ -493,32 +651,24 @@ public class SomeGUI {
 				lst2.setListData(logsTopToBottom.toArray());
 				
 			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Select an older action and click revert to "
+						+ "revert the file to the state it was in after that action was performed.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
 		});
 
 		revertButton.setBounds(790, 498, 87, 23);
 		frame.getContentPane().add(revertButton);
-		
-		
-//		JPanel panel = new JPanel();
-//		panel.setBounds(0, 0, 772, 336);
-//		
-//		JTextArea display = new JTextArea(16,58);
-//		display.setEditable(false);
-//		
-//		
-//		JScrollPane scroller = new JScrollPane(display);
-//		scroller.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-//		
-//		panel.add(scroller);
-//		
-//		frame.getContentPane().add(panel);
-		
-
 	}
 	
 	public String getAllImages() {
 		String textAreaStr = "";
-		for (ImageNode imgz : inh.getKeys()) {
+		for (ImageNode imgz : inh.getImages()) {
 			textAreaStr += imgz.findChild(imgz).getPathName() + "\n";
 		}
 		return textAreaStr;

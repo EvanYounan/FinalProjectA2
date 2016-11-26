@@ -2,6 +2,7 @@
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 public class ImageNode extends FileNode {
@@ -34,10 +35,6 @@ public class ImageNode extends FileNode {
 	
 	public void addTag(Tag tag) {
 		tags.add(tag);
-	}
-	
-	public void addTags(ArrayList<Tag> tags) {
-		tags.addAll(tags);
 	}
 	
 	public void removeTag(Tag tag) {
@@ -175,10 +172,29 @@ public class ImageNode extends FileNode {
 	public void setChild(ImageNode temp) {
 		this.child = temp;
 	}
+	
+	public void revertToDate(ImageNode imgNodeToRevert, Date date) {
+		if (imgNodeToRevert.findRoot(imgNodeToRevert).getLog().laterThan(date)) {
+			if (imgNodeToRevert.findRoot(imgNodeToRevert).hasChild()) {
+				imgNodeToRevert.getChild().setParent(null);
+			}
+			imgNodeToRevert.findRoot(imgNodeToRevert).setChild(null);
+		} else if (!imgNodeToRevert.getLog().laterThan(date)) {
+			if (imgNodeToRevert.hasChild()) {
+				if (!imgNodeToRevert.getChild().getLog().laterThan(date)) {
+					revertToDate(imgNodeToRevert.getChild(), date);
+				} else {
+					imgNodeToRevert.getChild().setParent(null);
+					imgNodeToRevert.setChild(null);
+				}
+			}
+		}
+	}
 
 	@Override
 	public String toString() {
-		return "ImageNode [path=" + this.getPathName() + ", name= " + this.getName() + "]";
+		return "ImageNode [path=" + this.findChild(this).getPathName() + 
+				", name= " + this.findChild(this).getName() + "]";
 	}
 	
 }

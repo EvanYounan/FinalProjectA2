@@ -1,8 +1,14 @@
 import java.io.File;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 
 public class ImageNodeHandler implements Serializable {
 	private ArrayList<ImageNode> imgs = new ArrayList<ImageNode>();
@@ -103,12 +109,8 @@ public class ImageNodeHandler implements Serializable {
 		return false;
 	}
 	
-	public ArrayList<ImageNode> getKeys() {
-		ArrayList<ImageNode> temp = new ArrayList<ImageNode>();
-		for (ImageNode i : imgs) {
-			temp.add(i);
-		}
-		return temp;
+	public ArrayList<ImageNode> getImages() {
+		return this.imgs;
 	}
 	
 	public void removeTag(ImageNode img, Tag tag) {		
@@ -197,6 +199,78 @@ public class ImageNodeHandler implements Serializable {
 		}
 		System.out.println("Got a null return from findImageNode");
 		return null;
+	}
+	
+	public void revertAllImages(Date date) {
+		for (ImageNode img : this.imgs) {
+			String oldPath = img.findChild(img).getPathName();
+			img.revertToDate(img, date);
+			String newPath = img.findChild(img).getPathName();
+			renameFile(oldPath, newPath);
+		}
+		updateExisting();
+	}
+
+	
+	public static void main(String[] args) {
+		ArrayList<ImageNode> allImgs = new ArrayList<ImageNode>();
+		Scanner scan = new Scanner(System.in);
+		ImageNode i1 = new ImageNode("C:/somepath/photo.jpg", "photo.jpg");
+		allImgs.add(i1);
+		
+		
+		
+		ImageNodeHandler inh = new ImageNodeHandler(allImgs);
+		
+		System.out.println(inh.logsFromTopToBottom(i1));
+		
+		
+		String date = "Sun Nov 27 05:00:00 EST 2016";
+		SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy",
+				Locale.ENGLISH);
+		Date convertedDate = null;
+		
+		try {
+			convertedDate = format.parse(date);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		
+		System.out.println("add first tag?");
+		scan.nextLine();
+		inh.addTag(i1, new Tag("Evan"));
+		System.out.println(i1.findChild(i1).getPathName());
+		
+
+		
+
+		Date currDate = new Date();
+		System.out.println(convertedDate.after(currDate));
+		System.out.println("The date to revert to is: " + convertedDate);
+		scan.nextLine();
+		
+		
+		
+		System.out.println("Add second tag?");
+		scan.nextLine();
+		inh.addTag(i1, new Tag("Marvin"));
+		System.out.println(i1.findChild(i1).getPathName());
+		
+		System.out.println(inh.logsFromTopToBottom(i1));
+		
+		System.out.println("Before reverting: " + i1.findChild(i1).getPathName());
+		inh.revertAllImages(convertedDate);
+		
+		System.out.println();
+		System.out.println("After reverting: ");
+		System.out.println(i1.findChild(i1).getPathName());
+		System.out.println("Existing tags: " + inh.getExistingTags());
+		
+		System.out.println(inh.logsFromTopToBottom(i1));
+		
 	}
 	
 //	public String toString() {
