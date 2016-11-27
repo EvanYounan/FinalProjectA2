@@ -239,27 +239,9 @@ public class ImageNode extends FileNode {
 		return false;
 	}
 	
-	
-	
-//	public ArrayList<Tag> getTagsUpTo(ImageNode img, ArrayList<Tag> temp) {
-//		if (img != null) {
-//			if (!img.getTags().isEmpty()) {
-//				for (Tag t : img.getTags()) {
-//					if (!tagInList(temp, t)) {
-//						temp.add(t);
-//					}
-//				}
-//			}
-//			if (img.getChild() != null) {
-//				return getTagsUpTo(img.getChild(), temp);
-//			} else {
-//				return temp;
-//			}
-//		} else {
-//		return temp;
-//		}
-//	}
-	
+	/**
+	 * Set the name and path of this ImageNode given the list of tags it possesses.
+	 */
 	public void setFileNameAndFilePath() {
 		String originalPathName = this.findRoot(this).getPathName();
 		String originalName = this.findRoot(this).getName();
@@ -282,18 +264,44 @@ public class ImageNode extends FileNode {
 				retString);
 	}
 
+	/**
+	 * Return true if and only if the other ImageNode is in the same straight-line structure
+	 * of ImageNodes as this ImageNode. That is, if they have the same ID.
+	 * 
+	 * @param otherImgNode - other ImageNode being analyzed
+	 * @return		true iff other ImageNode is in straight-line of ImageNodes.
+	 */
 	public boolean equals(ImageNode otherImgNode) {
 		return this.ID == otherImgNode.ID;
 	}
 	
-	public void setParent(ImageNode temp) {
-		this.parent = temp;
+	/**
+	 * Set the parent of this ImageNode to another ImageNode. 
+	 * 
+	 * @param parent - the parent of this ImageNode
+	 */
+	public void setParent(ImageNode parent) {
+		this.parent = parent;
 	}
 	
-	public void setChild(ImageNode temp) {
-		this.child = temp;
+	/**
+	 * Set the child of this ImageNode to another ImageNode.
+	 * 
+	 * @param child - the child of this ImageNode
+	 */
+	public void setChild(ImageNode child) {
+		this.child = child;
 	}
 	
+	/**
+	 * Beginning from the root of the ImageNode, find the ImageNode with a log
+	 * that holds the date immediately before the given date. This ImageNode will
+	 * be the current configuration of the image at the given date. Make this ImageNode
+	 * the child of the straight-lined structure.
+	 * 
+	 * @param imgNodeToRevert - the root of the ImageNode to revert
+	 * @param date - the date to revert the ImageNode back to
+	 */
 	public void revertToDate(ImageNode imgNodeToRevert, Date date) {
 		if (imgNodeToRevert.findRoot(imgNodeToRevert).getLog().laterThan(date)) {
 			if (imgNodeToRevert.findRoot(imgNodeToRevert).hasChild()) {
@@ -311,49 +319,9 @@ public class ImageNode extends FileNode {
 			}
 		}
 	}
-
+	
 	@Override
 	public String toString() {
 		return "ImageNode [name= " + this.findChild(this).getName() + "]";
 	}
-	
 }
-	
-//	public static void main(String[] args) {
-//		ArrayList<ImageNode> imgNodes = new ArrayList<ImageNode>();
-//		ImageNode x = new ImageNode("C:/somePath/evan.jpg", "evan.jpg");
-//		
-//		ImageNode y = new ImageNode();
-//		y.setParent(x);
-//		x.setChild(y);
-//		y.addTag(new Tag("Evan"));
-//		y.setFileNameAndFilePath();
-//		System.out.println(y);
-////		imgNodes.add(x);
-////		
-////		ImageNodeHandler inh = new ImageNodeHandler(imgNodes);
-//		
-////		ImageNode n = new ImageNode("C:/somePath/photo.jpg" ,"photo.jpg");
-////		
-////		
-////		ImageNode someChild = new ImageNode();
-////		someChild.parent = n;
-////		n.child = someChild;
-////		someChild.tags = n.getTags();
-////		someChild.addTag(new Tag("Evan"));
-////		someChild.setFileNameAndFilePath();
-////		System.out.println(someChild);
-////		System.out.println(someChild.getName());
-//		
-////		System.out.println(n.getFileName());
-//
-////		n.setChild(someChild);
-////		someChild.setParent(n);
-////		System.out.println(someChild.getParent());
-////		
-////		String originalName = someChild.findRoot(someChild).getName();
-////		originalName = originalName.substring(0, originalName.indexOf("."));
-////		System.out.println(originalName);
-//
-//	}
-//}

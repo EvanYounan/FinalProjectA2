@@ -665,7 +665,6 @@ public class MainGUI {
 					logsTopToBottom.add(imgN.getLog());
 				}
 				inh.updateExisting();
-				System.out.println(inh.getExistingTags());
 				listOfExisting.setListData(inh.getExistingTags().toArray());
 				listOfActivities.setListData(logsTopToBottom.toArray());
 				

@@ -108,9 +108,34 @@ public class ImageNodeHandler implements Serializable {
 	}
 	
 	/**
+	 * Remove a tag from the ImageNode given. This function sets up the new ImageNode's attributes
+	 * and appends it as the absolute child of the straight-lined structure of ImageNodes.
+	 * 
+	 * @param img - any ImageNode in the straight-lined structure
+	 * @param tag - tag to be added to the ImageNode's absolute child
+	 */
+	public void removeTag(ImageNode img, Tag tag) {		
+		ImageNode someChild = new ImageNode();
+		
+		someChild.setParent(img.findChild(img));
+		img.findChild(img).setChild(someChild);
+		someChild.setTags(img.findChild(img).getTags());
+		someChild.setID(img.getID());
+		someChild.removeTag(tag);
+		addTagToRemoved(tag);
+		updateExisting();
+		someChild.setFileNameAndFilePath();
+		someChild.setLog("Removing tag @" + tag.getName() + ". New Name: " + someChild.getName());
+		
+		File oldFile = new File(img.getPathName());
+		File newFile = new File(someChild.getPathName());
+		oldFile.renameTo(newFile);
+	}
+	
+	/**
 	 * Add a tag to the removed list of tags.
 	 * 
-	 * @param tag - tag to be added
+	 * @param tag - tag to be added to removed list of tags.
 	 */
 	public void addTagToRemoved(Tag tag) {
 		if (!removedContainsTag(tag) && !tagInExisting(tag)) {
@@ -119,8 +144,9 @@ public class ImageNodeHandler implements Serializable {
 	}
 	
 	/**
-	 * Add a tag to the existing
-	 * @param tag
+	 * Add a tag to the existing list of tags.
+	 * 
+	 * @param tag - tag to be added to existing list of tags.
 	 */
 	public void addTagToExisting(Tag tag) {
 		existing.add(tag);
@@ -141,6 +167,12 @@ public class ImageNodeHandler implements Serializable {
 		return false;
 	}
 	
+	/**
+	 * Return true if and only if the tag is in the existing list of tags.
+	 * 
+	 * @param tag - tag to be looked for
+	 * @return		true if and only this tag is in the existing list of tags.
+	 */
 	public boolean tagInExisting(Tag tag) {
 		for (Tag thisTag : existing) {
 			if (thisTag.equals(tag)) {
@@ -150,35 +182,34 @@ public class ImageNodeHandler implements Serializable {
 		return false;
 	}
 	
+	/**
+	 * Return all of the ImageNodes loaded into the system.
+	 * 
+	 * @return		all ImageNodes loaded into system
+	 */
 	public ArrayList<ImageNode> getImages() {
 		return this.imgs;
 	}
 	
-	public void removeTag(ImageNode img, Tag tag) {		
-		ImageNode someChild = new ImageNode();
-		
-		someChild.setParent(img);
-		img.setChild(someChild);
-		someChild.setTags(img.getTags());
-		someChild.setID(img.getID());
-		someChild.removeTag(tag);
-		addTagToRemoved(tag);
-		updateExisting();
-		someChild.setFileNameAndFilePath();
-		someChild.setLog("Removing tag @" + tag.getName() + ". New Name: " + someChild.getName());
-		
-		File oldFile = new File(img.getPathName());
-		File newFile = new File(someChild.getPathName());
-		oldFile.renameTo(newFile);
-//		System.out.println(removedTags);
-	}
-	
+	/**
+	 * Rename a file given the old path and new path of the file.
+	 * 
+	 * @param oldPath - old path of the file
+	 * @param newPath - new path of the file
+	 */
 	public void renameFile(String oldPath, String newPath) {
 		File oldFile = new File(oldPath);
 		File newFile = new File(newPath);
 		oldFile.renameTo(newFile);
 	}
 	
+	/**
+	 * Given any ImageNode, return the ImageNodes in its straight-line structure as an array
+	 * beginning from the root and ending at the absolute child.
+	 * 
+	 * @param imgN - any ImageNode in the straight-line of ImageNodes
+	 * @return		a list of all ImageNodes beginning from the root to the absolute child
+	 */
 	public ArrayList<ImageNode> toTopToBottomArray(ImageNode imgN) {
 		ArrayList<ImageNode> temp = new ArrayList<ImageNode>();
 		imgN = imgN.findRoot(imgN);
@@ -189,6 +220,13 @@ public class ImageNodeHandler implements Serializable {
 		return temp;
 	}
 	
+	/**
+	 * Given any ImageNode, return all of the logs in the straight-line structure as an array
+	 * beginning from the root's logs and ending at the absolute child's log.
+	 * 
+	 * @param imgN - any ImageNode in the straight-line of ImageNodes
+	 * @return		a list of all Logs beginning from the root ImageNode to the absolute child ImageNode
+	 */
 	public ArrayList<Log> logsFromTopToBottom(ImageNode imgN) {
 		ArrayList<ImageNode> allImgNodes = toTopToBottomArray(imgN);
 		ArrayList<Log> logsToReturn = new ArrayList<Log>();
@@ -198,6 +236,11 @@ public class ImageNodeHandler implements Serializable {
 		return logsToReturn;
 	}
 	
+	/**
+	 * Based on all of the ImageNodes loaded into the system, update the existing
+	 * list of tags by looking at the absolute child of all ImageNodes (which contain
+	 * current configuration of ImageNodes).
+	 */
 	public void updateExisting() {
 		existing.clear();
 		for (ImageNode imgN : imgs) {
@@ -209,15 +252,25 @@ public class ImageNodeHandler implements Serializable {
 		}
 	}
 	
+	/**
+	 * Return true if and only if the ImageNode's absolute child contains the tag given.
+	 *  
+	 * @param tag - tag to be looked for
+	 * @param thisImg - ImageNode to check for tag
+	 * @return		true if ImageNode contains the tag in current configuration
+	 */
 	public boolean canRemoveTag(Tag tag, ImageNode thisImg) {
-		if (thisImg.getPathName().contains("@" + tag.getName())) {
-			System.out.println("Apparently this file reports a truth!");
+		if (thisImg.findChild(thisImg).getPathName().contains("@" + tag.getName())) {
 			return true;
 		}
-		System.out.println("Could not remove Tags that do not exist for the picture!");
 		return false;
 	}
 	
+	/**
+	 * Remove the given tag from all ImageNodes loaded into the system.
+	 * 
+	 * @param tag - tag to be removed
+	 */
 	public void removeTagFromAll(Tag tag) {
 		for (ImageNode thisImg : imgs) {
 			if (canRemoveTag(tag, thisImg.findChild(thisImg))) {
@@ -226,22 +279,37 @@ public class ImageNodeHandler implements Serializable {
 		}
 	}
 	
+	/**
+	 * Add the given tag to all ImageNodes loaded into the system.
+	 * 
+	 * @param tag - tag to be added
+	 */
 	public void addTagToAll(Tag tag) {
 		for (ImageNode thisImg : imgs) {
 			addTag(thisImg.findChild(thisImg), tag);
 		}
 	}
 	
+	/**
+	 * Return the ImageNode in the system that contains the path given.
+	 * 
+	 * @param path - path of the ImageNode
+	 * @return		ImageNode with the path given
+	 */
 	public ImageNode findImageNode(String path) {
 		for (ImageNode tempImage : imgs) {
 			if (path.equals(tempImage.findChild(tempImage).getPathName())) {
 				return tempImage;
 			}
 		}
-		System.out.println("Got a null return from findImageNode");
 		return null;
 	}
 	
+	/**
+	 * Revert all ImageNodes in the system to the given date.
+	 * 
+	 * @param date - date to revert all ImageNodes to
+	 */
 	public void revertAllImages(Date date) {
 		for (ImageNode img : this.imgs) {
 			String oldPath = img.findChild(img).getPathName();
