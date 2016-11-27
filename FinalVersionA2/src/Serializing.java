@@ -1,26 +1,34 @@
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Date;
 
 public class Serializing {
 
-	String serFilePath;
+	/** Path of Serialized file */
+	private String serFilePath;
 	
+	/**
+	 * Create a Serializing object with the given path to the serialization file.
+	 * 
+	 * @param path - path to serialization file
+	 */
 	public Serializing(String path) {
 		this.serFilePath = path;
 	}
 	
-	public void Serialize(ImageNodeHandler imgs) {
+	/**
+	 * Serialize the top-level ImageNodeHandler which manages all the ImageNodes in the
+	 * systen.
+	 * 
+	 * @param inh - object which contains information on all ImageNodes, tags, etc., in the system
+	 */
+	public void Serialize(ImageNodeHandler inh) {
 		try {
 			FileOutputStream fos = new FileOutputStream(this.serFilePath);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
-			oos.writeObject(imgs);
+			oos.writeObject(inh);
 			
 			oos.close();
 			fos.close();
@@ -31,6 +39,12 @@ public class Serializing {
 		}
 	}
 	
+	/**
+	 * Deserialize the file from the given path and return the top-level ImageNodeHandler
+	 * which holds all the information on all ImageNodes in the system.
+	 * 
+	 * @return - object which contains all information on the ImageNodes, tags, etc., in the system
+	 */
 	public ImageNodeHandler Deserialize() {
 		ImageNodeHandler temp = null;
 		try {
@@ -44,38 +58,5 @@ public class Serializing {
 			e.printStackTrace();
 		}
 		return temp;
-	}
-	
-	public static void main(String[] args) {
-//		Serializing ser = new Serializing("info/this.ser");
-//		Tag evan = new Tag("Evan");
-//		ArrayList<Tag> x = new ArrayList<Tag>();
-//		x.add(evan);
-//		x.add(new Tag("Marvin"));
-//		ArrayList<Tag> x = null;
-//		x = ser.Deserialize();
-//		System.out.println(x.toString());
-//		
-//		ArrayList<Tag> theseTags = new ArrayList<Tag>();
-//		theseTags.add(new Tag("Plots"));
-//		ser.Serialize(theseTags);
-//		x = ser.Deserialize();
-//		System.out.println(x.toString());
-//		
-//		ImageNode img = new ImageNode("C://SomePath/fileImage.jpg",
-//				"fileImage.jpg");
-//		ser.Serialize(img);
-//		System.out.println(img.getID());
-//		
-//		ImageNode img = null;
-//		img = ser.Deserialize();
-//		System.out.println(img.getID());
-//		Date d2 = new Date();
-//		Date d1 = ser.Deserialize();
-//		
-//		System.out.println(d1);
-//		System.out.println(d2);
-//		System.out.println(d1.before(d2));
-		
 	}
 }

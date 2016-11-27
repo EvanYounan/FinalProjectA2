@@ -1,13 +1,8 @@
 import java.awt.EventQueue;
-
 import javax.swing.JFrame;
-import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.JButton;
 import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
@@ -19,19 +14,22 @@ import java.awt.event.WindowAdapter;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 
-public class SomeGUI {
+public class MainGUI {
 
 	private JFrame frame;
-	public ImageNodeHandler inh;
+	private ImageNodeHandler inh;
 	File f = new File("src/imageNodeHandlerInformation.ser");
 	Serializing ser = new Serializing("src/imageNodeHandlerInformation.ser");
 	private JTextField retrievedTextField;
 	private JTextField textField;
 	private JTextField textFieldfromAll;
-	String tempPathToParent = "";
+	@SuppressWarnings("rawtypes")
+	private JList listOfImages;
+	@SuppressWarnings("rawtypes")
+	private JList listOfActivities;
+	@SuppressWarnings("rawtypes")
+	private JList listOfExisting;
 	
 	/**
 	 * Launch the application.
@@ -40,7 +38,7 @@ public class SomeGUI {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					SomeGUI window = new SomeGUI();
+					MainGUI window = new MainGUI();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -52,7 +50,7 @@ public class SomeGUI {
 	/**
 	 * Create the application.
 	 */
-	public SomeGUI() {
+	public MainGUI() {
 		initialize();
 	}
 	
@@ -74,19 +72,47 @@ public class SomeGUI {
 		statusLabel.setBounds(10, 653, 808, 14);
 		frame.getContentPane().add(statusLabel);
 		
-	
-//		JTextArea display = new JTextArea(16,58);
-		JList listOfImages = new JList();
-		listOfImages.addMouseListener(new MouseAdapter() {
+		listOfActivities = new JList();
+		listOfActivities.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				statusLabel.setText("Status bar: All of the images loaded into the program. Highlight "
-						+ " a path and click Retrieve File to begin performing operation to the"
-						+ " image.");
+				statusLabel.setText("Status bar: The list of all operations performed on the current file "
+						+ "being operated on.");
 			}
 			@Override
 			public void mouseExited(MouseEvent e) {
 				statusLabel.setText("Status bar:");
+			}
+		});
+		listOfImages = new JList();
+		listOfImages.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				if (listOfImages.getModel().getSize() == 0) {
+					statusLabel.setText("Status bar: Please click Load Files at the bottom of the screen"
+							+ " to begin operating on them.");
+				} else {
+					statusLabel.setText("Status bar: All of the images loaded into the program. Click "
+						+ "an image to view recent activity and to begin performing operations on the"
+						+ " image.");
+				}
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				ImageNode temp = (ImageNode) listOfImages.getSelectedValue();
+				retrievedTextField.setText(temp.findChild(temp).getPathName());
+				
+				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+				for (ImageNode imgN : topToBottom) {
+					logsTopToBottom.add(imgN.getLog());
+				}
+				
+				listOfActivities.setListData(logsTopToBottom.toArray());
 			}
 		});
 //		display.setEditable(false);
@@ -98,8 +124,8 @@ public class SomeGUI {
 		JPanel panel_1 = new JPanel();
 		panel_1.setLayout(new GridLayout());
 		panel_1.setBounds(10, 347, 290, 166);
-		JList list = new JList();
-		list.addMouseListener(new MouseAdapter() {
+		listOfExisting = new JList();
+		listOfExisting.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				statusLabel.setText("Status bar: The current tags being used in the program.");
@@ -109,8 +135,8 @@ public class SomeGUI {
 				statusLabel.setText("Status bar:");
 			}
 		});
-		list.setBounds(10, 347, 290, 166);
-		JScrollPane scroll = new JScrollPane(list);
+		listOfExisting.setBounds(10, 347, 290, 166);
+		JScrollPane scroll = new JScrollPane(listOfExisting);
 		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		JLabel lblNewLabel = new JLabel("Existing Tags");
 		panel_1.add(scroll);
@@ -118,9 +144,9 @@ public class SomeGUI {
 		
 		JPanel panel_2 = new JPanel();
 		panel_2.setBounds(599, 347, 290, 140);
-		JList lst2 = new JList();
-		lst2.setBounds(599, 347, 290, 149);
-		JScrollPane scroll2 = new JScrollPane(lst2);
+		
+		listOfActivities.setBounds(599, 347, 290, 149);
+		JScrollPane scroll2 = new JScrollPane(listOfActivities);
 		scroll2.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		panel_2.add(scroll2);
 		panel_2.setLayout(new GridLayout());
@@ -131,7 +157,7 @@ public class SomeGUI {
 				inh = ser.Deserialize();
 				listOfImages.setListData(inh.getImages().toArray());
 				ArrayList<Tag> someExistingTags = inh.getExistingTags();
-				list.setListData(someExistingTags.toArray());
+				listOfExisting.setListData(someExistingTags.toArray());
 			} else {
 				inh = new ImageNodeHandler();
 			}
@@ -166,7 +192,7 @@ public class SomeGUI {
 					}
 				}
 				ArrayList<Tag> someExistingTags = inh.getExistingTags();
-				list.setListData(someExistingTags.toArray());
+				listOfExisting.setListData(someExistingTags.toArray());
 				listOfImages.setListData(inh.getImages().toArray());
 				
 			}
@@ -183,14 +209,14 @@ public class SomeGUI {
 		btnNewButton.setBounds(10, 626, 932, 23);
 		frame.getContentPane().add(btnNewButton);
 		
-		JButton btnNewButton_1 = new JButton("Add Tag");
-		btnNewButton_1.setBounds(10, 558, 89, 23);
-		frame.getContentPane().add(btnNewButton_1);
+		JButton addTagButton = new JButton("Add Tag");
+		addTagButton.setBounds(10, 558, 89, 23);
+		frame.getContentPane().add(addTagButton);
 		
-		JButton btnNewButton_2 = new JButton("Remove Tag");
+		JButton removeTagButton = new JButton("Remove Tag");
 
-		btnNewButton_2.setBounds(109, 558, 108, 23);
-		frame.getContentPane().add(btnNewButton_2);
+		removeTagButton.setBounds(109, 558, 108, 23);
+		frame.getContentPane().add(removeTagButton);
 		
 		retrievedTextField = new JTextField();
 		retrievedTextField.addMouseListener(new MouseAdapter() {
@@ -206,38 +232,8 @@ public class SomeGUI {
 		retrievedTextField.setBounds(171, 527, 418, 20);
 		frame.getContentPane().add(retrievedTextField);
 		retrievedTextField.setColumns(10);
-		
-		
-		JButton btnNewButton_3 = new JButton("Retrieve File");
-		btnNewButton_3.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (listOfImages.getSelectedValue() != null) {
-//					tempPathToParent = display.getSelectedText();
-					ImageNode temp = (ImageNode) listOfImages.getSelectedValue();
-					retrievedTextField.setText(temp.findChild(temp).getPathName());
-					
-					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
-					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
-					for (ImageNode imgN : topToBottom) {
-						logsTopToBottom.add(imgN.getLog());
-					}
-					
-					lst2.setListData(logsTopToBottom.toArray());
-				}
-			}
-			@Override
-			public void mouseEntered(MouseEvent e) {
-				statusLabel.setText("Status bar: After highlighting one image's path from above, click"
-						+ " this button to perform some operations on the image.");
-			}
-			@Override
-			public void mouseExited(MouseEvent e) {
-				statusLabel.setText("Status bar:");
-			}
-		});
 		//addTag
-		btnNewButton_1.addMouseListener(new MouseAdapter() {
+		addTagButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagName = textField.getText().trim();
@@ -251,7 +247,7 @@ public class SomeGUI {
 					}
 				}
 				
-				list.setListData(inh.getExistingTags().toArray());
+				listOfExisting.setListData(inh.getExistingTags().toArray());
 				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 				listOfImages.setListData(inh.getImages().toArray());
 				
@@ -263,7 +259,7 @@ public class SomeGUI {
 					logsTopToBottom.add(imgN.getLog());
 				}
 				
-				lst2.setListData(logsTopToBottom.toArray());
+				listOfActivities.setListData(logsTopToBottom.toArray());
 				
 			}
 			@Override
@@ -277,7 +273,7 @@ public class SomeGUI {
 			}
 		});
 		
-		btnNewButton_2.addMouseListener(new MouseAdapter() {
+		removeTagButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagToRemove = textField.getText().trim();
@@ -286,7 +282,7 @@ public class SomeGUI {
 				if (!retrievedTextField.getText().isEmpty()) { 
 					inh.removeTag(tempNode.findChild(tempNode), tagToRemove);
 				}
-				list.setListData(inh.getExistingTags().toArray());
+				listOfExisting.setListData(inh.getExistingTags().toArray());
 				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 //				ArrayList<Tag> someExistingTags = inh.getExistingTags();
 //				list.setListData(someExistingTags.toArray());
@@ -300,7 +296,7 @@ public class SomeGUI {
 					logsTopToBottom.add(imgN.getLog());
 				}
 				
-				lst2.setListData(logsTopToBottom.toArray());
+				listOfActivities.setListData(logsTopToBottom.toArray());
 				
 			}
 			@Override
@@ -313,9 +309,6 @@ public class SomeGUI {
 				statusLabel.setText("Status bar:");
 			}
 		});
-		
-		btnNewButton_3.setBounds(10, 524, 151, 23);
-		frame.getContentPane().add(btnNewButton_3);
 		
 		textField = new JTextField();
 		textField.addMouseListener(new MouseAdapter() {
@@ -355,24 +348,35 @@ public class SomeGUI {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagName = textFieldfromAll.getText().trim();
-				ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
-				Tag tempTag = new Tag(newTagName);
-				inh.addTagToAll(tempTag);
-				list.setListData(inh.getExistingTags().toArray());
-				listOfImages.setListData(inh.getImages().toArray());
-//				retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
-				
-				tempNode = tempNode.findChild(tempNode);
-				retrievedTextField.setText(tempNode.getPathName());
-				
-				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
-				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
-				for (ImageNode imgN : topToBottom) {
-					logsTopToBottom.add(imgN.getLog());
+				Tag newTag = new Tag(newTagName);
+					
+				ImageNode tempNode = null;
+					
+				if (!retrievedTextField.getText().isEmpty()) { 
+					tempNode = inh.findImageNode(retrievedTextField.getText());
+					if (tempNode.findChild(tempNode) != null) {
+						inh.addTagToAll(newTag);
+					}
+						
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+						
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+						
+					listOfActivities.setListData(logsTopToBottom.toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					
+				} else {
+					inh.addTagToAll(newTag);
 				}
-				
-				lst2.setListData(logsTopToBottom.toArray());
+					
+				inh.updateExisting();
+				listOfExisting.setListData(inh.getExistingTags().toArray());
+				listOfImages.setListData(inh.getImages().toArray());
 			}
+			
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				statusLabel.setText("Status bar: This button allows you to add a tag with the"
@@ -392,25 +396,33 @@ public class SomeGUI {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				String newTagName = textFieldfromAll.getText().trim();
-				ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
-				Tag tempTag = new Tag(newTagName);
-				System.out.println("Before removing all: " + inh.getExistingTags());
-				inh.removeTagFromAll(tempTag);
-				list.setListData(inh.getExistingTags().toArray());
-				System.out.println("After removing all of the files: " + inh.getExistingTags());
-				listOfImages.setListData(inh.getImages().toArray());
-				
-				
-				tempNode = tempNode.findChild(tempNode);
-				retrievedTextField.setText(tempNode.getPathName());
-				
-				ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
-				ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
-				for (ImageNode imgN : topToBottom) {
-					logsTopToBottom.add(imgN.getLog());
+				Tag newTag = new Tag(newTagName);
+					
+				ImageNode tempNode = null;
+					
+				if (!retrievedTextField.getText().isEmpty()) { 
+					tempNode = inh.findImageNode(retrievedTextField.getText());
+					if (tempNode.findChild(tempNode) != null) {
+						inh.removeTagFromAll(newTag);
+					}
+						
+					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+						
+					for (ImageNode imgN : topToBottom) {
+						logsTopToBottom.add(imgN.getLog());
+					}
+						
+					listOfActivities.setListData(logsTopToBottom.toArray());
+					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					
+				} else {
+					inh.removeTagFromAll(newTag);
 				}
-				
-				lst2.setListData(logsTopToBottom.toArray());
+					
+				inh.updateExisting();
+				listOfExisting.setListData(inh.getExistingTags().toArray());
+				listOfImages.setListData(inh.getImages().toArray());
 			}
 			@Override
 			public void mouseEntered(MouseEvent e) {
@@ -434,8 +446,8 @@ public class SomeGUI {
 		btnNewButton_6.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
-					Tag newTag = (Tag) list.getSelectedValue();
+				if (!listOfExisting.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag newTag = (Tag) listOfExisting.getSelectedValue();
 //					Tag tempTag = new Tag(newTagName);
 					
 					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
@@ -446,7 +458,7 @@ public class SomeGUI {
 						}
 					}
 					
-					list.setListData(inh.getExistingTags().toArray());
+					listOfExisting.setListData(inh.getExistingTags().toArray());
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 					listOfImages.setListData(inh.getImages().toArray());
 					
@@ -458,7 +470,7 @@ public class SomeGUI {
 						logsTopToBottom.add(imgN.getLog());
 					}
 					
-					lst2.setListData(logsTopToBottom.toArray());
+					listOfActivities.setListData(logsTopToBottom.toArray());
 				}
 				
 			}
@@ -480,14 +492,14 @@ public class SomeGUI {
 		btnNewButton_7.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
-					Tag tagToRemove = (Tag)list.getSelectedValue();
+				if (!listOfExisting.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
+					Tag tagToRemove = (Tag)listOfExisting.getSelectedValue();
 					
 					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
 					if (!retrievedTextField.getText().isEmpty()) { 
 						inh.removeTag(tempNode.findChild(tempNode), tagToRemove);
 					}
-					list.setListData(inh.getExistingTags().toArray());
+					listOfExisting.setListData(inh.getExistingTags().toArray());
 					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 //					ArrayList<Tag> someExistingTags = inh.getExistingTags();
 //					list.setListData(someExistingTags.toArray());
@@ -501,7 +513,7 @@ public class SomeGUI {
 						logsTopToBottom.add(imgN.getLog());
 					}
 					
-					lst2.setListData(logsTopToBottom.toArray());
+					listOfActivities.setListData(logsTopToBottom.toArray());
 				}
 				
 			}
@@ -523,31 +535,32 @@ public class SomeGUI {
 		btnAddTagTo.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
-					Tag newTag = (Tag) list.getSelectedValue();
+				if (!listOfExisting.isSelectionEmpty()) {
+					Tag newTag = (Tag) listOfExisting.getSelectedValue();
 //					Tag tempTag = new Tag(newTagName);
 					
-					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
 					
+					ImageNode tempNode = null;
 					if (!retrievedTextField.getText().isEmpty()) { 
+						tempNode = inh.findImageNode(retrievedTextField.getText());
 						if (tempNode.findChild(tempNode) != null) {
 							inh.addTagToAll(newTag);
+							retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+							
+							ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+							ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+							for (ImageNode imgN : topToBottom) {
+								logsTopToBottom.add(imgN.getLog());
+							}
+							
+							listOfActivities.setListData(logsTopToBottom.toArray());
 						}
+					} else {
+						inh.addTagToAll(newTag);
 					}
 					
-					list.setListData(inh.getExistingTags().toArray());
-					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					listOfExisting.setListData(inh.getExistingTags().toArray());
 					listOfImages.setListData(inh.getImages().toArray());
-					
-					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
-					
-					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
-					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
-					for (ImageNode imgN : topToBottom) {
-						logsTopToBottom.add(imgN.getLog());
-					}
-					
-					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
 			}
@@ -568,31 +581,35 @@ public class SomeGUI {
 		btnNewButton_8.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (!list.isSelectionEmpty() && retrievedTextField.getText().length() > 0) {
-					Tag newTag = (Tag) list.getSelectedValue();
+				if (!listOfExisting.isSelectionEmpty()) {
+					Tag newTag = (Tag) listOfExisting.getSelectedValue();
 //					Tag tempTag = new Tag(newTagName);
 					
-					ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+					ImageNode tempNode = null;
 					
 					if (!retrievedTextField.getText().isEmpty()) { 
-						if (tempNode.findChild(tempNode) != null) {
+						tempNode = inh.findImageNode(retrievedTextField.getText());
+						if (tempNode != null) {
 							inh.removeTagFromAll(newTag);
+							
+							ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(tempNode);
+							ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+							
+							for (ImageNode imgN : topToBottom) {
+								logsTopToBottom.add(imgN.getLog());
+							}
+							
+							listOfActivities.setListData(logsTopToBottom.toArray());
+							retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 						}
+						
+					} else {
+						inh.removeTagFromAll(newTag);
 					}
 					
-					list.setListData(inh.getExistingTags().toArray());
-					retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+					inh.updateExisting();
+					listOfExisting.setListData(inh.getExistingTags().toArray());
 					listOfImages.setListData(inh.getImages().toArray());
-					
-					ImageNode temp = inh.findImageNode(retrievedTextField.getText());
-					
-					ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
-					ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
-					for (ImageNode imgN : topToBottom) {
-						logsTopToBottom.add(imgN.getLog());
-					}
-					
-					lst2.setListData(logsTopToBottom.toArray());
 				}
 				
 			}
@@ -611,15 +628,15 @@ public class SomeGUI {
 		
 
 		
-		JLabel lblNewLabel_2 = new JLabel("Older names");
-		lblNewLabel_2.setBounds(599, 322, 89, 14);
+		JLabel lblNewLabel_2 = new JLabel("Recent Activities");
+		lblNewLabel_2.setBounds(599, 322, 108, 14);
 		frame.getContentPane().add(lblNewLabel_2);
 		
 		JButton revertButton = new JButton("Revert");
 		revertButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				Log chosenLog = (Log) lst2.getSelectedValue();
+				Log chosenLog = (Log) listOfActivities.getSelectedValue();
 				ImageNode temp = inh.findImageNode(retrievedTextField.getText().toString());
 				String oldPath = retrievedTextField.getText().toString();
 				temp = temp.findRoot(temp);
@@ -649,14 +666,14 @@ public class SomeGUI {
 				}
 				inh.updateExisting();
 				System.out.println(inh.getExistingTags());
-				list.setListData(inh.getExistingTags().toArray());
-				lst2.setListData(logsTopToBottom.toArray());
+				listOfExisting.setListData(inh.getExistingTags().toArray());
+				listOfActivities.setListData(logsTopToBottom.toArray());
 				
 			}
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				statusLabel.setText("Status bar: Select an older action and click revert to "
-						+ "revert the file to the state it was in after that action was performed.");
+				statusLabel.setText("Status bar: Select a recent activity and click \'Revert\' to "
+						+ "revert the file to the state it was in after that activity was performed.");
 			}
 			@Override
 			public void mouseExited(MouseEvent e) {
@@ -666,6 +683,55 @@ public class SomeGUI {
 
 		revertButton.setBounds(790, 498, 87, 23);
 		frame.getContentPane().add(revertButton);
+		
+		JButton btnNewButton_4 = new JButton("Revert all images to date");
+		btnNewButton_4.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				RevertPopup rp = new RevertPopup(inh);
+				rp.setVisible(true);
+				rp.toFront();
+				rp.addWindowListener(new WindowAdapter() {
+					@Override
+					public void windowClosed(WindowEvent e) {
+						
+						if (inh.findImageNode(retrievedTextField.getText()) != null) {
+							ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
+							retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
+						}
+						listOfExisting.setListData(inh.getExistingTags().toArray());
+						listOfImages.setListData(inh.getImages().toArray());
+						listOfImages.setSelectedIndex(0);
+						ImageNode temp = (ImageNode) listOfImages.getSelectedValue();
+						retrievedTextField.setText(temp.findChild(temp).getPathName());
+						
+						ArrayList<ImageNode> topToBottom = inh.toTopToBottomArray(temp);
+						ArrayList<Log> logsTopToBottom = new ArrayList<Log>();
+						for (ImageNode imgN : topToBottom) {
+							logsTopToBottom.add(imgN.getLog());
+						}
+						
+						listOfActivities.setListData(logsTopToBottom.toArray());
+					}
+				});
+			}
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				statusLabel.setText("Status bar: Selecting this button opens another window which allows "
+						+ "you to revert all images in the program to a certain date.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+		});
+		btnNewButton_4.setBounds(599, 498, 181, 23);
+		frame.getContentPane().add(btnNewButton_4);
+		
+		JLabel lblNewLabel_3 = new JLabel("Path of file being edited:");
+		lblNewLabel_3.setBounds(10, 524, 158, 14);
+		frame.getContentPane().add(lblNewLabel_3);
+		
 	}
 	
 	public String getAllImages() {

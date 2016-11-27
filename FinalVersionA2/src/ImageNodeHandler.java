@@ -1,24 +1,28 @@
 import java.io.File;
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Scanner;
 
+/**
+ * Top-level Object to handle ImageNode activities and tags in the system.
+ * @author Evannnn
+ */
 public class ImageNodeHandler implements Serializable {
+	
+	/** ID for Serialization */
+	private static final long serialVersionUID = 1L;
+	/** All ImageNodes in the system */
 	private ArrayList<ImageNode> imgs = new ArrayList<ImageNode>();
+	/** All tags being used currently by ImageNodes */
 	private ArrayList<Tag> existing = new ArrayList<Tag>();
+	/** All removed tags of the system */
 	private ArrayList<Tag> removedTags = new ArrayList<Tag>();
 	
 	/**
 	 * Create an ImageNodeHandler object which loads all of the
-	 * ImageNodes into a map with no Logs.
-	 * @param loadedImages
+	 * ImageNodes into an ArrayList. Create a log for all these ImageNodes.
+	 * 
+	 * @param loadedImages - all ImageNodes to be loaded
 	 */
 	public ImageNodeHandler(ArrayList<ImageNode> loadedImages) {
 		for (ImageNode img : loadedImages) {
@@ -30,6 +34,12 @@ public class ImageNodeHandler implements Serializable {
 	/** Empty constructor for serialization */
 	public ImageNodeHandler() {}
 	
+	/**
+	 * If there are ImageNodes already loaded into the system, append these new ImageNodes
+	 * to the list of ImageNodes if they are not in the system.
+	 * 
+	 * @param imagesToAdd - all ImageNodes to be added
+	 */
 	public void addImageNodes(ArrayList<ImageNode> imagesToAdd) {
 		for (ImageNode img : imagesToAdd) {
 			if (!this.hasImage(img)) {
@@ -39,6 +49,14 @@ public class ImageNodeHandler implements Serializable {
 		}
 	}
 	
+	/**
+	 * Return true if and only if the path of the given ImageNode matches
+	 * the path of any ImageNode straight-line structure's absolute child (absolute
+	 * child holds current configuration of every file).
+	 * 
+	 * @param img - ImageNode to be looked for
+	 * @return		true if and only if this ImageNode is not in the system
+	 */
 	public boolean hasImage(ImageNode img) {
 		for (ImageNode theseImgs : imgs) {
 			if (img.getPathName().equals(theseImgs.findChild(theseImgs).getPathName())) {
@@ -48,10 +66,22 @@ public class ImageNodeHandler implements Serializable {
 		return false;
 	}
 	
+	/**
+	 * Return all tags that are currently being used.
+	 * 
+	 * @return	all tags being used
+	 */
 	public ArrayList<Tag> getExistingTags() {
 		return this.existing;
 	}
 	
+	/**
+	 * Add a tag to the ImageNode given. This function sets up the new ImageNode's attributes
+	 * and appends it as the absolute child of the straight-lined structure of ImageNodes.
+	 * 
+	 * @param img - any ImageNode in the straight-lined structure
+	 * @param tag - tag to be added to the ImageNode's absolute child
+	 */
 	public void addTag(ImageNode img, Tag tag) {
 		ImageNode someChild = new ImageNode();
 		ImageNode tempChildOfWhole = img.findChild(img);
@@ -65,10 +95,6 @@ public class ImageNodeHandler implements Serializable {
 		}
 		someChild.addTag(tag);
 		
-//		for (ImageNode tempImg : toTopToBottomArray(img)) {
-//			System.out.println(tempImg.getTags());
-//		}
-		
 		if (!tagInExisting(tag)) {
 			addTagToExisting(tag);
 		}
@@ -81,12 +107,31 @@ public class ImageNodeHandler implements Serializable {
 		oldFile.renameTo(newFile);
 	}
 	
+	/**
+	 * Add a tag to the removed list of tags.
+	 * 
+	 * @param tag - tag to be added
+	 */
 	public void addTagToRemoved(Tag tag) {
-		if (!removedContainsTag(tag)) {
+		if (!removedContainsTag(tag) && !tagInExisting(tag)) {
 			removedTags.add(tag);
 		}
 	}
 	
+	/**
+	 * Add a tag to the existing
+	 * @param tag
+	 */
+	public void addTagToExisting(Tag tag) {
+		existing.add(tag);
+	}
+	
+	/**
+	 * Return true if and only if the removed list of tags contains this tag.
+	 * 
+	 * @param tag - to be looked for in removed list of tags
+	 * @return		true if tag is in the removed list of tags
+	 */
 	public boolean removedContainsTag(Tag tag) {
 		for (Tag t : removedTags) {
 			if (tag.getName().equals(t.getName())) {
@@ -94,10 +139,6 @@ public class ImageNodeHandler implements Serializable {
 			}
 		}
 		return false;
-	}
-	
-	public void addTagToExisting(Tag tag) {
-		existing.add(tag);
 	}
 	
 	public boolean tagInExisting(Tag tag) {
@@ -118,7 +159,7 @@ public class ImageNodeHandler implements Serializable {
 		
 		someChild.setParent(img);
 		img.setChild(someChild);
-		someChild.tags = img.getTags();
+		someChild.setTags(img.getTags());
 		someChild.setID(img.getID());
 		someChild.removeTag(tag);
 		addTagToRemoved(tag);
@@ -210,80 +251,4 @@ public class ImageNodeHandler implements Serializable {
 		}
 		updateExisting();
 	}
-
-	
-	public static void main(String[] args) {
-		ArrayList<ImageNode> allImgs = new ArrayList<ImageNode>();
-		Scanner scan = new Scanner(System.in);
-		ImageNode i1 = new ImageNode("C:/somepath/photo.jpg", "photo.jpg");
-		allImgs.add(i1);
-		
-		
-		
-		ImageNodeHandler inh = new ImageNodeHandler(allImgs);
-		
-		System.out.println(inh.logsFromTopToBottom(i1));
-		
-		
-		String date = "Sun Nov 27 05:00:00 EST 2016";
-		SimpleDateFormat format = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy",
-				Locale.ENGLISH);
-		Date convertedDate = null;
-		
-		try {
-			convertedDate = format.parse(date);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-		
-		System.out.println("add first tag?");
-		scan.nextLine();
-		inh.addTag(i1, new Tag("Evan"));
-		System.out.println(i1.findChild(i1).getPathName());
-		
-
-		
-
-		Date currDate = new Date();
-		System.out.println(convertedDate.after(currDate));
-		System.out.println("The date to revert to is: " + convertedDate);
-		scan.nextLine();
-		
-		
-		
-		System.out.println("Add second tag?");
-		scan.nextLine();
-		inh.addTag(i1, new Tag("Marvin"));
-		System.out.println(i1.findChild(i1).getPathName());
-		
-		System.out.println(inh.logsFromTopToBottom(i1));
-		
-		System.out.println("Before reverting: " + i1.findChild(i1).getPathName());
-		inh.revertAllImages(convertedDate);
-		
-		System.out.println();
-		System.out.println("After reverting: ");
-		System.out.println(i1.findChild(i1).getPathName());
-		System.out.println("Existing tags: " + inh.getExistingTags());
-		
-		System.out.println(inh.logsFromTopToBottom(i1));
-		
-	}
-	
-//	public String toString() {
-//		String retString = "";
-//		for (ImageNode thisImg : imgs) {
-//			retString += thisImg.getChild().toString() + "\n";
-//			if (imgs.get(thisImg) != null) {
-//				for (Log thisLog : imgs.get(thisImg)) {
-//					retString += thisLog + "\n";
-//				}
-//			}
-//		}
-//		return retString;
-//	}
-	
 }
