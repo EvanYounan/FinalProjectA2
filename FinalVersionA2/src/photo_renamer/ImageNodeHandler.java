@@ -121,8 +121,6 @@ public class ImageNodeHandler implements Serializable {
 			File oldFile = new File(img.getPathName());
 			File newFile = new File(someChild.getPathName());
 			oldFile.renameTo(newFile);
-		} else {
-			System.out.println("Doesn't have the tag");
 		}
 	}
 	
@@ -330,6 +328,15 @@ public class ImageNodeHandler implements Serializable {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * 
+	 */
+	public void clearAllInformation() {
+		this.imgs.clear();
+		this.existing.clear();
+		this.removedTags.clear();
 	}
 	
 	/**

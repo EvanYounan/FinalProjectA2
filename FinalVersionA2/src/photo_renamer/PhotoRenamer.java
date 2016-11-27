@@ -8,6 +8,9 @@ import javax.swing.JButton;
 import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -71,7 +74,7 @@ public class PhotoRenamer {
 		panel.setBounds(0, 0, 952, 304);
 		
 		JLabel statusLabel = new JLabel("Status bar:");
-		statusLabel.setBounds(10, 653, 808, 14);
+		statusLabel.setBounds(10, 653, 942, 14);
 		frame.getContentPane().add(statusLabel);
 		
 		listOfActivities = new JList();
@@ -745,6 +748,30 @@ public class PhotoRenamer {
 		JLabel lblNewLabel_3 = new JLabel("Path of file being edited:");
 		lblNewLabel_3.setBounds(10, 524, 158, 14);
 		frame.getContentPane().add(lblNewLabel_3);
+		
+		JButton clearButton = new JButton("Clear All Images");
+		clearButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				statusLabel.setText("Status bar: Remove all of the images loaded into the system. WARNING: "
+						+ "all the changes you made will not be reversible.");
+			}
+			@Override
+			public void mouseExited(MouseEvent e) {
+				statusLabel.setText("Status bar:");
+			}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				ArrayList<ImageNode> emptyList = new ArrayList<>(); 
+				listOfImages.setListData(emptyList.toArray());
+				listOfExisting.setListData(emptyList.toArray());
+				listOfActivities.setListData(emptyList.toArray());
+				inh.clearAllInformation();
+				retrievedTextField.setText("");
+			}
+		});
+		clearButton.setBounds(310, 486, 279, 23);
+		frame.getContentPane().add(clearButton);
 		
 	}
 	

@@ -30,7 +30,6 @@ public class Serializing {
 			FileOutputStream fos = new FileOutputStream(this.serFilePath);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			oos.writeObject(inh);
-			
 			oos.close();
 			fos.close();
 			
