@@ -41,7 +41,10 @@ public class LoadingDirectory {
 	            } else {
 	            	if (path.toAbsolutePath().toString().endsWith(".jpg") ||
 	            			path.toAbsolutePath().toString().endsWith(".png") ||
-	            			path.toAbsolutePath().toString().endsWith(".tif")) {
+	            			path.toAbsolutePath().toString().endsWith(".tif") ||
+	            			path.toAbsolutePath().toString().endsWith(".JPG") ||
+	            			path.toAbsolutePath().toString().endsWith(".jpeg") ||
+	            			path.toAbsolutePath().toString().endsWith(".bmp")) {
 	            		fileNames.add(path.toFile());
 	            	}
 	            }
