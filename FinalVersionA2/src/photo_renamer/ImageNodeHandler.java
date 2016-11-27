@@ -98,7 +98,7 @@ public class ImageNodeHandler implements Serializable {
 	 * @param tag - tag to be added to the ImageNode's absolute child
 	 */
 	public void addTag(ImageNode img, Tag tag) {
-		if (!tag.getName().equals("")) {
+		if (!tag.getName().equals("") && !img.findChild(img).hasTag(tag)) {
 			ImageNode someChild = new ImageNode();
 			ImageNode tempChildOfWhole = img.findChild(img);
 			
@@ -121,6 +121,8 @@ public class ImageNodeHandler implements Serializable {
 			File oldFile = new File(img.getPathName());
 			File newFile = new File(someChild.getPathName());
 			oldFile.renameTo(newFile);
+		} else {
+			System.out.println("Doesn't have the tag");
 		}
 	}
 	

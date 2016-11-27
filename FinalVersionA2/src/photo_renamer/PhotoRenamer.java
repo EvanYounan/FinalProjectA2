@@ -292,7 +292,9 @@ public class PhotoRenamer {
 					if (!retrievedTextField.getText().isEmpty()) { 
 						ImageNode tempNode = inh.findImageNode(retrievedTextField.getText());
 						if (tempNode.findChild(tempNode) != null) {
-							inh.removeTag(tempNode.findChild(tempNode), tempTag);
+							if (tempNode.findChild(tempNode).hasTag(tempTag)) {
+								inh.removeTag(tempNode.findChild(tempNode), tempTag);
+							}	
 						}
 						retrievedTextField.setText(tempNode.findChild(tempNode).getPathName());
 						
